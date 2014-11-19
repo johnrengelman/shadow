@@ -61,7 +61,7 @@ class XmlAppendingTransformer implements Transformer {
         return false
     }
 
-    void transform(String path, InputStream is, List<Relocator> relocators) {
+    void transform(String jarName, String path, InputStream is, List<Relocator> relocators) {
         Document r
         try {
             SAXBuilder builder = new SAXBuilder(false)

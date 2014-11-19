@@ -38,8 +38,8 @@ class ServiceFileTransformerSpec extends TransformerSpecSupport {
 
         when:
             if (transformer.canTransformResource(element)) {
-                transformer.transform(path, toInputStream(input1), [])
-                transformer.transform(path, toInputStream(input2), [])
+                transformer.transform('jarNameToBeIgnored', path, toInputStream(input1), [])
+                transformer.transform('jarNameToBeIgnored', path, toInputStream(input2), [])
             }
 
         then:

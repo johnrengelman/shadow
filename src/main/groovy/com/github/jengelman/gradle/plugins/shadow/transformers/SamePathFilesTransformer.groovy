@@ -18,8 +18,10 @@
  */
 
 package com.github.jengelman.gradle.plugins.shadow.transformers
-
 import com.github.jengelman.gradle.plugins.shadow.relocation.Relocator
+import org.apache.commons.collections.map.MultiValueMap
+import org.apache.commons.io.FilenameUtils
+import org.apache.commons.lang.StringUtils
 import org.apache.tools.zip.ZipEntry
 import org.apache.tools.zip.ZipOutputStream
 import org.gradle.api.file.FileTreeElement
@@ -28,37 +30,11 @@ import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.mvn3.org.codehaus.plexus.util.IOUtil
 
-/**
- * Modified from org.apache.maven.plugins.shade.resource.ServiceResourceTransformer.java
- *
- * Resources transformer that appends entries in META-INF/services resources into
- * a single resource. For example, if there are several META-INF/services/org.apache.maven.project.ProjectBuilder
- * resources spread across many JARs the individual entries will all be concatenated into a single
- * META-INF/services/org.apache.maven.project.ProjectBuilder resource packaged into the resultant JAR produced
- * by the shading process.
- *
- * Original
- * @author jvanzyl
- *
- * Modifications
- * @author Charlie Knudsen
- * @author John Engelman
- */
-class ServiceFileTransformer implements Transformer, PatternFilterable {
+class SamePathFilesTransformer implements Transformer, PatternFilterable {
 
-    private static final String SERVICES_PATTERN = "META-INF/services/**"
+    private final PatternSet patternSet = new PatternSet()
 
-    private static final String GROOVY_EXTENSION_MODULE_DESCRIPTOR_PATTERN =
-            "META-INF/services/org.codehaus.groovy.runtime.ExtensionModule"
-
-    Map<String, ServiceStream> serviceEntries = [:].withDefault { new ServiceStream() }
-
-    private final PatternSet patternSet =
-            new PatternSet().include(SERVICES_PATTERN).exclude(GROOVY_EXTENSION_MODULE_DESCRIPTOR_PATTERN)
-
-    void setPath(String path) {
-        patternSet.setIncludes(["${path}/**"])
-    }
+    private final def serviceEntires = new MultiValueMap()
 
     @Override
     boolean canTransformResource(FileTreeElement element) {
@@ -67,47 +43,53 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
 
     @Override
     void transform(String jarName, String path, InputStream is, List<Relocator> relocators) {
-        serviceEntries[path].append(is)
+        serviceEntires.put(path, new InputStreamWithJarName(is, jarName))
     }
 
     @Override
     boolean hasTransformedResource() {
-        return serviceEntries.size() > 0
+        return true;
     }
 
     @Override
     void modifyOutputStream(ZipOutputStream os) {
-        serviceEntries.each { String path, ServiceStream stream ->
-            os.putNextEntry(new ZipEntry(path))
-            IOUtil.copy(stream.toInputStream(), os)
-            os.closeEntry()
-        }
-    }
-
-    static class ServiceStream extends ByteArrayOutputStream {
-
-        public ServiceStream(){
-            super( 1024 )
-        }
-
-        public void append( InputStream is ) throws IOException {
-            if ( count > 0 && buf[count - 1] != '\n' && buf[count - 1] != '\r' ) {
-                byte[] newline = '\n'.bytes
-                write(newline, 0, newline.length)
+        serviceEntires.each { String path, List<InputStreamWithJarName> streams ->
+            if (streams.size() == 1) {
+                os.putNextEntry(new ZipEntry(path))
+                IOUtil.copy(streams[0].is, os)
+                os.closeEntry()
+            } else {
+                streams.each {
+                    def newPath = createFilePathWithMergedJarName(path, it.jarName)
+                    os.putNextEntry(new ZipEntry(newPath))
+                    IOUtil.copy(it.is, os)
+                    os.closeEntry()
+                }
             }
-            IOUtil.copy(is, this)
+        }
+    }
+
+    private String createFilePathWithMergedJarName(String path, String mergedJarName) {
+        def extension = FilenameUtils.getExtension(path)
+        def pathWithoutExtension = path
+        if (StringUtils.isNotEmpty(extension)) {
+            pathWithoutExtension = path.substring(0, path.length() - extension.length() - 1)
+            extension = ".$extension"
         }
 
-        public InputStream toInputStream() {
-            return new ByteArrayInputStream( buf, 0, count )
+        def mergedJarExtension = FilenameUtils.getExtension(mergedJarName)
+        if (StringUtils.isNotEmpty(mergedJarExtension)) {
+            mergedJarName = mergedJarName.substring(0, mergedJarName.length() - mergedJarExtension.length() - 1)
         }
+
+        return "${pathWithoutExtension}_$mergedJarName$extension"
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer include(String... includes) {
+    SamePathFilesTransformer include(String... includes) {
         patternSet.include(includes)
         return this
     }
@@ -116,7 +98,7 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer include(Iterable<String> includes) {
+    SamePathFilesTransformer include(Iterable<String> includes) {
         patternSet.include(includes)
         return this
     }
@@ -125,7 +107,7 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer include(Spec<FileTreeElement> includeSpec) {
+    SamePathFilesTransformer include(Spec<FileTreeElement> includeSpec) {
         patternSet.include(includeSpec)
         return this
     }
@@ -134,7 +116,7 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer include(Closure includeSpec) {
+    SamePathFilesTransformer include(Closure includeSpec) {
         patternSet.include(includeSpec)
         return this
     }
@@ -143,7 +125,7 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer exclude(String... excludes) {
+    SamePathFilesTransformer exclude(String... excludes) {
         patternSet.exclude(excludes)
         return this
     }
@@ -152,7 +134,7 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer exclude(Iterable<String> excludes) {
+    SamePathFilesTransformer exclude(Iterable<String> excludes) {
         patternSet.exclude(excludes)
         return this
     }
@@ -161,7 +143,7 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer exclude(Spec<FileTreeElement> excludeSpec) {
+    SamePathFilesTransformer exclude(Spec<FileTreeElement> excludeSpec) {
         patternSet.exclude(excludeSpec)
         return this
     }
@@ -170,7 +152,7 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer exclude(Closure excludeSpec) {
+    SamePathFilesTransformer exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec)
         return this
     }
@@ -187,7 +169,7 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer setIncludes(Iterable<String> includes) {
+    SamePathFilesTransformer setIncludes(Iterable<String> includes) {
         patternSet.includes = includes
         return this
     }
@@ -204,9 +186,19 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    ServiceFileTransformer setExcludes(Iterable<String> excludes) {
+    SamePathFilesTransformer setExcludes(Iterable<String> excludes) {
         patternSet.excludes = excludes
         return this
     }
 
+    private class InputStreamWithJarName {
+
+        private InputStream is;
+        private String jarName;
+
+        InputStreamWithJarName(InputStream is, String jarName) {
+            this.is = is
+            this.jarName = jarName
+        }
+    }
 }

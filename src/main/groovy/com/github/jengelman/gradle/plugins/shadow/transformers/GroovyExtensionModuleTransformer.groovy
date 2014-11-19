@@ -54,7 +54,7 @@ class GroovyExtensionModuleTransformer implements Transformer {
     }
 
     @Override
-    void transform(String path, InputStream is, List<Relocator> relocators) {
+    void transform(String jarName, String path, InputStream is, List<Relocator> relocators) {
         def props = new Properties()
         props.load(is)
         props.each { String key, String value ->

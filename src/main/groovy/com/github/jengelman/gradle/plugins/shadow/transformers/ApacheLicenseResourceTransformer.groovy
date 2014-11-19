@@ -43,7 +43,7 @@ class ApacheLicenseResourceTransformer implements Transformer {
                 LICENSE_TXT_PATH.regionMatches(true, 0, path, 0, LICENSE_TXT_PATH.length())
     }
 
-    void transform(String path, InputStream is, List<Relocator> relocators) {
+    void transform(String jarName, String path, InputStream is, List<Relocator> relocators) {
 
     }
 

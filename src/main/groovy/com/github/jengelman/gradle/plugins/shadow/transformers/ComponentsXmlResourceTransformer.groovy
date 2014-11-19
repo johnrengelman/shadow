@@ -48,7 +48,7 @@ class ComponentsXmlResourceTransformer implements Transformer {
         return COMPONENTS_XML_PATH.equals(path)
     }
 
-    void transform(String path, InputStream is, List<Relocator> relocators) {
+    void transform(String jarName, String path, InputStream is, List<Relocator> relocators) {
         Xpp3Dom newDom
 
         try {

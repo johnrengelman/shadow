@@ -52,8 +52,8 @@ class PropertiesFileTransformerSpec extends TransformerSpecSupport {
 
         when:
         if (transformer.canTransformResource(element)) {
-            transformer.transform(path, toInputStream(toProperties(input1)), [])
-            transformer.transform(path, toInputStream(toProperties(input2)), [])
+            transformer.transform('jarNameToBeIgnored', path, toInputStream(toProperties(input1)), [])
+            transformer.transform('jarNameToBeIgnored', path, toInputStream(toProperties(input2)), [])
         }
 
         then:
@@ -76,8 +76,8 @@ class PropertiesFileTransformerSpec extends TransformerSpecSupport {
 
         when:
         if (transformer.canTransformResource(element)) {
-            transformer.transform(path, toInputStream(toProperties(input1)), [])
-            transformer.transform(path, toInputStream(toProperties(input2)), [])
+            transformer.transform('jarNameToBeIgnored', path, toInputStream(toProperties(input1)), [])
+            transformer.transform('jarNameToBeIgnored', path, toInputStream(toProperties(input2)), [])
         }
 
         then:
@@ -100,8 +100,8 @@ class PropertiesFileTransformerSpec extends TransformerSpecSupport {
 
         when:
         if (transformer.canTransformResource(element)) {
-            transformer.transform(path, toInputStream(toProperties(input1)), [])
-            transformer.transform(path, toInputStream(toProperties(input2)), [])
+            transformer.transform('jarNameToBeIgnored', path, toInputStream(toProperties(input1)), [])
+            transformer.transform('jarNameToBeIgnored', path, toInputStream(toProperties(input2)), [])
         }
 
         then:

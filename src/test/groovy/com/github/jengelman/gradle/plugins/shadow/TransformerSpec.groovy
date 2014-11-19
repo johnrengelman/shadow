@@ -1,14 +1,11 @@
 package com.github.jengelman.gradle.plugins.shadow
-
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
-import com.github.jengelman.gradle.plugins.shadow.transformers.GroovyExtensionModuleTransformer
-import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
-import com.github.jengelman.gradle.plugins.shadow.transformers.XmlAppendingTransformer
+import com.github.jengelman.gradle.plugins.shadow.transformers.*
 import com.github.jengelman.gradle.plugins.shadow.util.PluginSpecification
 import org.gradle.testkit.functional.ExecutionResult
 import spock.lang.Issue
 
+import java.util.jar.JarFile
 import java.util.jar.JarInputStream
 import java.util.jar.Manifest
 
@@ -619,6 +616,100 @@ class TransformerSpec extends PluginSpecification {
             assert props.getProperty('moduleVersion') == '1.0.0'
             assert props.getProperty('extensionClasses') == 'com.acme.foo.FooExtension,com.acme.foo.BarExtension,com.acme.bar.SomeExtension,com.acme.bar.AnotherExtension'
             assert props.getProperty('staticExtensionClasses') == 'com.acme.foo.FooStaticExtension,com.acme.bar.SomeStaticExtension'
+    }
+
+    def 'same file transformer'() {
+        given:
+        def one = buildJar('one.jar')
+                .insertFile('fileInJar.txt', 'This is file one content')
+                .insertFile('toExclude', 'First content to exclude')
+                .write()
+
+        def two = buildJar('two.jar')
+                .insertFile('fileInJar.txt', 'This is file two content')
+                .insertFile('toExclude', 'Second content to exclude')
+                .write()
+
+        buildFile << """
+                |task shadow(type: ${ShadowJar.name}) {
+                |    destinationDir = new File(buildDir, 'libs')
+                |    baseName = 'shadow'
+                |    from('${escapedPath(one)}')
+                |    from('${escapedPath(two)}')
+                |    transform(${SamePathFilesTransformer.name}) {
+                |        exclude 'toExclude'
+                |    }
+                |}
+            """.stripMargin()
+
+        when:
+        runner.arguments << 'shadow'
+        def result = runner.run()
+
+        JarFile jf = new JarFile(output)
+        def paths = ""
+        jf.entries().each {
+            paths += "\n$it"
+        }
+
+        then:
+        success(result)
+        assert output.exists()
+
+        and:
+        doesNotContain(output, ['fileInJar'])
+        doesNotContain(output, ['toExclude_one', 'toExclude_two'])
+        contains(output, ['toExclude'])
+
+        and:
+        def text = getJarFileContents(output, 'fileInJar_one.txt')
+        def text2 = getJarFileContents(output, 'fileInJar_two.txt')
+        def text3 = getJarFileContents(output, 'toExclude')
+        assert text == "This is file one content"
+        assert text2 == "This is file two content"
+        assert text3 == "First content to exclude" || text3 == "Second content to exclude"
+    }
+
+    def 'Groovy same file transformer for file without extension'() {
+        given:
+        def one = buildJar('one.jar')
+                .insertFile('fileInJar',
+                            'This is file one content'.stripMargin())
+                .write()
+
+        def two = buildJar('two.jar')
+                .insertFile('fileInJar',
+                            'This is file two content'.stripMargin())
+                .write()
+
+        buildFile << """
+                |task shadow(type: ${ShadowJar.name}) {
+                |    destinationDir = new File(buildDir, 'libs')
+                |    baseName = 'shadow'
+                |    from('${escapedPath(one)}')
+                |    from('${escapedPath(two)}')
+                |    transform(${SamePathFilesTransformer.name})
+                |}
+            """.stripMargin()
+
+        when:
+        runner.arguments << 'shadow'
+        def result = runner.run()
+
+        then:
+        success(result)
+        assert output.exists()
+
+        and:
+        doesNotContain(output, ['fileInJar'])
+
+        and:
+        def text = getJarFileContents(output, 'fileInJar_one')
+        assert text == "This is file one content"
+
+        and:
+        def text2 = getJarFileContents(output, 'fileInJar_two')
+        assert text2 == "This is file two content"
     }
 
     def 'Groovy extension module transformer short syntax'() {

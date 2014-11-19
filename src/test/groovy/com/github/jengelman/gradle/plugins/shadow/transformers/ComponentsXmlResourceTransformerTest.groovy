@@ -46,9 +46,11 @@ class ComponentsXmlResourceTransformerTest extends TestCase {
 
         XMLUnit.setNormalizeWhitespace(true)
 
-        transformer.transform("components-1.xml", getClass().getResourceAsStream("/components-1.xml"),
+        transformer.transform(
+                'jar name to be ignored', "components-1.xml", getClass().getResourceAsStream("/components-1.xml"),
                 Collections.<Relocator> emptyList())
-        transformer.transform("components-1.xml", getClass().getResourceAsStream("/components-2.xml"),
+        transformer.transform(
+                'jar name to be ignored', "components-1.xml", getClass().getResourceAsStream("/components-2.xml"),
                 Collections.<Relocator> emptyList())
         Diff diff = XMLUnit.compareXML(
                 IOUtil.toString(getClass().getResourceAsStream("/components-expected.xml"), "UTF-8"),

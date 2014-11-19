@@ -79,7 +79,7 @@ class ApacheNoticeResourceTransformer implements Transformer {
         return false
     }
 
-    void transform(String path, InputStream is, List<Relocator> relocators) {
+    void transform(String jarName, String path, InputStream is, List<Relocator> relocators) {
         if (entries.isEmpty()) {
             String year = new SimpleDateFormat("yyyy").format(new Date())
             if (!inceptionYear.equals(year)) {

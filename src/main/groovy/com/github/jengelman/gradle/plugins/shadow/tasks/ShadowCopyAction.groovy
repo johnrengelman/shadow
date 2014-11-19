@@ -161,39 +161,39 @@ public class ShadowCopyAction implements CopyAction {
             return visitedFiles.add(path.pathString)
         }
 
-        private void visitFile(FileCopyDetails fileDetails) {
-            if (!isArchive(fileDetails)) {
+        private void visitFile(FileCopyDetails mergedJarFileDetails) {
+            if (!isArchive(mergedJarFileDetails)) {
                 try {
-                    boolean isClass = (FilenameUtils.getExtension(fileDetails.path) == 'class')
+                    boolean isClass = (FilenameUtils.getExtension(mergedJarFileDetails.path) == 'class')
                     if (!remapper.hasRelocators() || !isClass) {
-                        if (!isTransformable(fileDetails)) {
-                            String path = fileDetails.relativePath.pathString
+                        if (!isTransformable(mergedJarFileDetails)) {
+                            String path = mergedJarFileDetails.relativePath.pathString
                             ZipEntry archiveEntry = new ZipEntry(path)
-                            archiveEntry.setTime(fileDetails.lastModified)
-                            archiveEntry.unixMode = (UnixStat.FILE_FLAG | fileDetails.mode)
+                            archiveEntry.setTime(mergedJarFileDetails.lastModified)
+                            archiveEntry.unixMode = (UnixStat.FILE_FLAG | mergedJarFileDetails.mode)
                             zipOutStr.putNextEntry(archiveEntry)
-                            fileDetails.copyTo(zipOutStr)
+                            mergedJarFileDetails.copyTo(zipOutStr)
                             zipOutStr.closeEntry()
                         } else {
-                            transform(fileDetails)
+                            transform(mergedJarFileDetails)
                         }
                     } else {
-                        remapClass(fileDetails)
+                        remapClass(mergedJarFileDetails)
                     }
-                    recordVisit(fileDetails.relativePath)
+                    recordVisit(mergedJarFileDetails.relativePath)
                 } catch (Exception e) {
-                    throw new GradleException(String.format("Could not add %s to ZIP '%s'.", fileDetails, zipFile), e)
+                    throw new GradleException(String.format("Could not add %s to ZIP '%s'.", mergedJarFileDetails, zipFile), e)
                 }
             } else {
-                processArchive(fileDetails)
+                processArchive(mergedJarFileDetails)
             }
         }
 
-        private void processArchive(FileCopyDetails fileDetails) {
+        private void processArchive(FileCopyDetails mergedJarFileDetails) {
             stats.startJar()
-            ZipFile archive = new ZipFile(fileDetails.file)
+            ZipFile archive = new ZipFile(mergedJarFileDetails.file)
             List<ArchiveFileTreeElement> archiveElements = archive.entries.collect {
-                new ArchiveFileTreeElement(new RelativeArchivePath(it, fileDetails))
+                new ArchiveFileTreeElement(new RelativeArchivePath(it, mergedJarFileDetails))
             }
             Spec<FileTreeElement> patternSpec = patternSet.getAsSpec()
             List<ArchiveFileTreeElement> filteredArchiveElements = archiveElements.findAll { ArchiveFileTreeElement archiveElement ->
@@ -201,7 +201,7 @@ public class ShadowCopyAction implements CopyAction {
             }
             filteredArchiveElements.each { ArchiveFileTreeElement archiveElement ->
                 if (archiveElement.relativePath.file) {
-                    visitArchiveFile(archiveElement, archive)
+                    visitArchiveFile(archiveElement, mergedJarFileDetails.file)
                 }
             }
             archive.close()
@@ -215,18 +215,19 @@ public class ShadowCopyAction implements CopyAction {
             }
         }
 
-        private void visitArchiveFile(ArchiveFileTreeElement archiveFile, ZipFile archive) {
+        private void visitArchiveFile(ArchiveFileTreeElement archiveFile, File mergedJarFile) {
+            ZipFile mergedJar = new ZipFile(mergedJarFile)
             def archiveFilePath = archiveFile.relativePath
             if (archiveFile.classFile || !isTransformable(archiveFile)) {
                 if (recordVisit(archiveFilePath)) {
                     if (!remapper.hasRelocators() || !archiveFile.classFile) {
-                        copyArchiveEntry(archiveFilePath, archive)
+                        copyArchiveEntry(archiveFilePath, mergedJar)
                     } else {
-                        remapClass(archiveFilePath, archive)
+                        remapClass(archiveFilePath, mergedJar)
                     }
                 }
             } else {
-                transform(archiveFile, archive)
+                transform(mergedJarFile.name, archiveFile, mergedJar)
             }
         }
 
@@ -308,17 +309,17 @@ public class ShadowCopyAction implements CopyAction {
             }
         }
 
-        private void transform(ArchiveFileTreeElement element, ZipFile archive) {
-            transform(element, archive.getInputStream(element.relativePath.entry))
+        private void transform(String jarName, ArchiveFileTreeElement element, ZipFile archive) {
+            transform(jarName, element, archive.getInputStream(element.relativePath.entry))
         }
 
         private void transform(FileCopyDetails details) {
-            transform(details, details.file.newInputStream())
+            transform(details.name, details, details.file.newInputStream())
         }
 
-        private void transform(FileTreeElement element, InputStream is) {
+        private void transform(String jarName, FileTreeElement element, InputStream is) {
             String mappedPath = remapper.map(element.relativePath.pathString)
-            transformers.find { it.canTransformResource(element) }.transform(mappedPath, is, relocators)
+            transformers.find { it.canTransformResource(element) }.transform(jarName, mappedPath, is, relocators)
         }
 
         private boolean isTransformable(FileTreeElement element) {

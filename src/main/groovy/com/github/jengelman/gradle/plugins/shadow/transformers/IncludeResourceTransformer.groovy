@@ -43,7 +43,7 @@ public class IncludeResourceTransformer implements Transformer {
         return false
     }
 
-    public void transform(String path, InputStream is, List<Relocator> relocators) {
+    public void transform(String jarName, String path, InputStream is, List<Relocator> relocators) {
         // no op
     }
 

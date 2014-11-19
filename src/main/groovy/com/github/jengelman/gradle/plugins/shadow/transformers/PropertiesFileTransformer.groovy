@@ -131,7 +131,7 @@ class PropertiesFileTransformer implements Transformer {
     }
 
     @Override
-    void transform(String path, InputStream is, List<Relocator> relocators) {
+    void transform(String jarName, String path, InputStream is, List<Relocator> relocators) {
         Properties props = propertiesEntries[path]
         if (props == null) {
             props = new Properties()

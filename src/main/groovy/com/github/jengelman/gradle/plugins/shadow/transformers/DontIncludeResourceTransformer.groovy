@@ -44,7 +44,7 @@ class DontIncludeResourceTransformer implements Transformer {
         return false
     }
 
-    void transform(String path, InputStream is, List<Relocator> relocators) {
+    void transform(String jarName, String path, InputStream is, List<Relocator> relocators) {
         // no op
     }
 
