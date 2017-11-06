@@ -663,6 +663,64 @@ class ShadowPluginSpec extends PluginSpecification {
 
     }
 
+    def 'zeroes zip entry timestamps if requested'() {
+        given:
+        file('src/main/java/shadow/Passed.java') << '''
+            package shadow;
+            public class Passed {}
+        '''.stripIndent()
+
+        buildFile << """
+            dependencies { compile 'junit:junit:3.8.2' }
+            // tag::rename[]
+            shadowJar {
+               baseName = 'shadow'
+               classifier = null
+               version = null
+               zeroZipEntryTimestamps()
+            }
+            // end::rename[]
+        """.stripIndent()
+
+        when:
+        runner.withArguments('-S', 'shadowJar').build()
+
+        then:
+        getZipEntries(output("shadow.jar")).each {
+            assert it.getTime() == 315558000000L
+        }
+    }
+
+    def 'calls provided ZipEntry Actions' () {
+        given:
+        file('src/main/java/shadow/Passed.java') << '''
+            package shadow;
+            public class Passed {}
+        '''.stripIndent()
+
+        buildFile << """
+            dependencies { compile 'junit:junit:3.8.2' }
+            // tag::rename[]
+            shadowJar {
+               baseName = 'shadow'
+               classifier = null
+               version = null
+               modifyZipEntries {
+                  ze -> ze.setName("overwritten")
+               }
+            }
+            // end::rename[]
+        """.stripIndent()
+
+        when:
+        runner.withArguments('-S', 'shadowJar').build()
+
+        then:
+        getZipEntries(output("shadow.jar")).each {
+            assert it.getName() == "overwritten"
+        }
+    }
+
     private String escapedPath(File file) {
         file.path.replaceAll('\\\\', '\\\\\\\\')
     }

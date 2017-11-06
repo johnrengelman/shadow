@@ -9,6 +9,7 @@ import com.github.jengelman.gradle.plugins.shadow.transformers.GroovyExtensionMo
 import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer;
 import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer;
 import groovy.lang.MetaClass;
+import org.apache.tools.zip.ZipEntry;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -28,6 +29,7 @@ import java.util.List;
 public class ShadowJar extends Jar implements ShadowSpec {
 
     private List<Transformer> transformers;
+    private List<Action<ZipEntry>> zipEntryActions;
     private List<Relocator> relocators;
     private List<Configuration> configurations;
     private DependencyFilter dependencyFilter;
@@ -41,6 +43,7 @@ public class ShadowJar extends Jar implements ShadowSpec {
         dependencyFilter = new DefaultDependencyFilter(getProject());
         setManifest(new DefaultInheritManifest(getServices().get(FileResolver.class)));
         transformers = new ArrayList<>();
+        zipEntryActions = new ArrayList<>();
         relocators = new ArrayList<>();
         configurations = new ArrayList<>();
     }
@@ -64,7 +67,7 @@ public class ShadowJar extends Jar implements ShadowSpec {
     }
 
     protected ZipCompressor getInternalCompressor() {
-        return versionUtil.getInternalCompressor(getEntryCompression(), this);
+        return versionUtil.getInternalCompressor(getEntryCompression(), this, zipEntryActions);
     }
 
     @TaskAction
@@ -98,6 +101,11 @@ public class ShadowJar extends Jar implements ShadowSpec {
         if (c != null) {
             c.execute(dependencyFilter);
         }
+        return this;
+    }
+
+    public ShadowJar entryAction(Action<ZipEntry> action) {
+        zipEntryActions.add(action);
         return this;
     }
 
@@ -135,6 +143,42 @@ public class ShadowJar extends Jar implements ShadowSpec {
      */
     public ShadowJar transform(Transformer transformer) {
         transformers.add(transformer);
+        return this;
+    }
+
+    /**
+     * Act on all zipEntries being added to the final jar.
+     *
+     * Every {@link ZipEntry} to be added to the final jar will be presented
+     * to the {@code zipEntryAction}, which can inspect and modify it as desired.
+     * @param zipEntryAction the action instance to add
+     * @return this
+     */
+    public ShadowSpec modifyZipEntries(Action<ZipEntry> zipEntryAction) {
+        zipEntryActions.add(zipEntryAction);
+        return this;
+    }
+
+    private static final long DOS_TIMESTAMP_ZERO = 315558000000L;
+    /**
+     * Zero out timestamps on zip entries to Jan 1st 1980. (DOS epoch)
+     *
+     * Why would you want to do this? The timestamps usually are just set to the
+     * time the jar was built. However, those timestamps are repeated across every
+     * file inside the jar, which scatters byte-level changes throughout the
+     * shadow jar, which breaks any efforts to calculate efficient deltas between
+     * shadow jar builds (e.g. rsync). With static timestamps though, rsync just works.
+     *
+     * This is generally safe to turn on because nothing cares about internal timestamps, but it's off by default.
+     * @return this
+     */
+    public ShadowJar zeroZipEntryTimestamps() {
+        zipEntryActions.add(new Action<ZipEntry>() {
+            @Override
+            public void execute(ZipEntry zipEntry) {
+                zipEntry.setTime(DOS_TIMESTAMP_ZERO);
+            }
+        });
         return this;
     }
 

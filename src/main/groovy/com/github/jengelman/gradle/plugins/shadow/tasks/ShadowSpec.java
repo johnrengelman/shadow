@@ -6,6 +6,7 @@ import com.github.jengelman.gradle.plugins.shadow.relocation.Relocator;
 import com.github.jengelman.gradle.plugins.shadow.relocation.SimpleRelocator;
 import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer;
 import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer;
+import org.apache.tools.zip.ZipEntry;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 
@@ -18,6 +19,10 @@ interface ShadowSpec extends CopySpec {
     <T extends Transformer> ShadowSpec transform(Class<T> clazz, Action<T> configure) throws InstantiationException, IllegalAccessException;
 
     ShadowSpec transform(Transformer transformer);
+
+    ShadowSpec modifyZipEntries(Action<ZipEntry> zipEntryAction);
+
+    ShadowSpec zeroZipEntryTimestamps();
 
     ShadowSpec mergeServiceFiles();
 

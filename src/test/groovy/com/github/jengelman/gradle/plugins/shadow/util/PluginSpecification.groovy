@@ -2,6 +2,8 @@ package com.github.jengelman.gradle.plugins.shadow.util
 
 import com.github.jengelman.gradle.plugins.shadow.util.file.TestFile
 import com.google.common.base.StandardSystemProperty
+import org.apache.tools.zip.ZipEntry
+import org.apache.tools.zip.ZipFile
 import org.codehaus.plexus.util.IOUtil
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.Rule
@@ -97,6 +99,10 @@ class PluginSpecification extends Specification {
         is.close()
         jf.close()
         return sw.toString()
+    }
+
+    List<ZipEntry> getZipEntries(File f) {
+        new ZipFile(f).entries.toList()
     }
 
     void contains(File f, List<String> paths) {

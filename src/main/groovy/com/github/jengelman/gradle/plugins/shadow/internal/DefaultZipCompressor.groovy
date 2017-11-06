@@ -16,21 +16,32 @@
 package com.github.jengelman.gradle.plugins.shadow.internal
 
 import org.apache.tools.zip.Zip64Mode
+import org.apache.tools.zip.ZipEntry
 import org.apache.tools.zip.ZipOutputStream
+import org.gradle.api.Action
 import org.gradle.api.UncheckedIOException
 
 class DefaultZipCompressor implements ZipCompressor {
     private final int entryCompressionMethod
     private final Zip64Mode zip64Mode
+    private final List<Action<ZipEntry>> actions
 
-     DefaultZipCompressor(boolean allowZip64Mode, int entryCompressionMethod) {
+    DefaultZipCompressor(boolean allowZip64Mode, int entryCompressionMethod, List<Action<ZipEntry>> actions) {
         this.entryCompressionMethod = entryCompressionMethod
         zip64Mode = allowZip64Mode ? Zip64Mode.AsNeeded : Zip64Mode.Never
+        this.actions = actions
     }
 
     ZipOutputStream createArchiveOutputStream(File destination) {
         try {
-            ZipOutputStream zipOutputStream = new ZipOutputStream(destination)
+            // Shim an override into the outputstream so we can intercept all entries and act on them
+            ZipOutputStream zipOutputStream = new ZipOutputStream(destination) {
+                @Override
+                void putNextEntry(ZipEntry archiveEntry) throws IOException {
+                    actions.each { it.execute(archiveEntry) }
+                    super.putNextEntry(archiveEntry)
+                }
+            }
             zipOutputStream.setUseZip64(zip64Mode)
             zipOutputStream.setMethod(entryCompressionMethod)
             return zipOutputStream

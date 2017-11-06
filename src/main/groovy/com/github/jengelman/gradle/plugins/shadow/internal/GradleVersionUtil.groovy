@@ -1,6 +1,8 @@
 package com.github.jengelman.gradle.plugins.shadow.internal
 
+import org.apache.tools.zip.ZipEntry
 import org.apache.tools.zip.ZipOutputStream
+import org.gradle.api.Action
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.bundling.Jar
@@ -20,12 +22,12 @@ class GradleVersionUtil {
         return mainSpec.buildRootResolver().getPatternSet()
     }
 
-    ZipCompressor getInternalCompressor(ZipEntryCompression entryCompression, Jar jar) {
+    ZipCompressor getInternalCompressor(ZipEntryCompression entryCompression, Jar jar, List<Action<ZipEntry>> actions) {
         switch (entryCompression) {
             case ZipEntryCompression.DEFLATED:
-                return new DefaultZipCompressor(jar.zip64, ZipOutputStream.DEFLATED);
+                return new DefaultZipCompressor(jar.zip64, ZipOutputStream.DEFLATED, actions);
             case ZipEntryCompression.STORED:
-                return new DefaultZipCompressor(jar.zip64, ZipOutputStream.STORED);
+                return new DefaultZipCompressor(jar.zip64, ZipOutputStream.STORED, actions);
             default:
                 throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
         }
