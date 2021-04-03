@@ -19,6 +19,9 @@ class ConfigureShadowRelocation extends DefaultTask {
     @Input
     String prefix = "shadow"
 
+    @Input
+    List<String> excludedPackages = []
+
     @InputFiles @Optional
     List<Configuration> getConfigurations() {
         return target.configurations
@@ -31,7 +34,7 @@ class ConfigureShadowRelocation extends DefaultTask {
             configuration.files.each { jar ->
                 JarFile jf = new JarFile(jar)
                 jf.entries().each { entry ->
-                    if (entry.name.endsWith(".class")) {
+                    if (entry.name.endsWith(".class") && !matchesExcludeList(entry.name)) {
                         packages << entry.name[0..entry.name.lastIndexOf('/')-1].replaceAll('/', '.')
                     }
                 }
@@ -48,4 +51,11 @@ class ConfigureShadowRelocation extends DefaultTask {
         return "configureRelocation${task.name.capitalize()}"
     }
 
+    boolean matchesExcludeList(String className) {
+        return excludedPackages.any {
+            if (className.startsWith(it)) {
+                return true
+            }
+        }
+    }
 }
