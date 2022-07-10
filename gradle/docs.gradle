@@ -1,12 +1,17 @@
-def javaApiUrl = 'http://docs.oracle.com/javase/1.7.0/docs/api'
-def groovyApiUrl = "http://docs.groovy-lang.org/2.4.7/html/gapi/"
+def javaApiUrl = 'https://docs.oracle.com/javase/8/docs/api'
+def groovyApiUrl = "https://docs.groovy-lang.org/3.0.8/html/gapi/"
 
-tasks.withType(Javadoc) {
+tasks.withType(Javadoc).configureEach {
     classpath += project.configurations.shadow
     options.links(javaApiUrl, groovyApiUrl)
     if (JavaVersion.current().java8Compatible) {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
+  options.encoding = "UTF-8"
+}
+
+project.tasks.withType(ProcessResources).configureEach {
+    filteringCharset = "UTF-8"
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

@@ -53,16 +53,29 @@ sourceSets {
     }
 }
 
-project.tasks.withType(JavaCompile) {
+project.tasks.withType(JavaCompile).configureEach {
     // This will be the default in Gradle 5.0
     if (!options.compilerArgs.contains("-processor")) {
         options.compilerArgs << '-proc:none'
     }
+    def targetVersion = 8
+    if (JavaVersion.current().isJava9Compatible()) {
+	it.options.release = targetVersion
+    } else {
+	sourceCompatibility = JavaVersion.toVersion(targetVersion)
+	targetCompatibility = JavaVersion.toVersion(targetVersion)
+  }
+  options.encoding = "UTF-8"
 }
 
-project.tasks.withType(GroovyCompile) {
+project.tasks.withType(GroovyCompile).configureEach {
     // This will be the default in Gradle 5.0
     if (!options.compilerArgs.contains("-processor")) {
         options.compilerArgs << '-proc:none'
     }
+  options.encoding = "UTF-8"
+}
+
+project.tasks.withType(ProcessResources).configureEach {
+    filteringCharset = "UTF-8"
 }

@@ -88,9 +88,6 @@ idea {
     }
 }
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
-
 task downloadDependencies(type: Exec) {
     dependsOn configurations.testRuntimeClasspath
     commandLine 'echo', 'Downloaded all dependencies'
@@ -98,18 +95,37 @@ task downloadDependencies(type: Exec) {
 
 tasks.build.dependsOn tasks.shadowJar
 
-project.tasks.withType(JavaCompile) {
-    // This will be the default in Gradle 5.0
-    if (!options.compilerArgs.contains("-processor")) {
-        options.compilerArgs << '-proc:none'
+java {
+    toolchain {
+            languageVersion.set(JavaLanguageVersion.of(8))
     }
 }
 
-project.tasks.withType(GroovyCompile) {
+project.tasks.withType(JavaCompile).configureEach {
     // This will be the default in Gradle 5.0
     if (!options.compilerArgs.contains("-processor")) {
         options.compilerArgs << '-proc:none'
     }
+   def targetVersion = 8
+    if (JavaVersion.current().isJava9Compatible()) {
+	it.options.release = targetVersion
+    } else {
+	sourceCompatibility = JavaVersion.toVersion(targetVersion)
+	targetCompatibility = JavaVersion.toVersion(targetVersion)
+  }
+  options.encoding = "UTF-8"
+}
+
+project.tasks.withType(GroovyCompile).configureEach {
+    // This will be the default in Gradle 5.0
+    if (!options.compilerArgs.contains("-processor")) {
+        options.compilerArgs << '-proc:none'
+    }
+  options.encoding = "UTF-8"
+}
+
+project.tasks.withType(ProcessResources).configureEach {
+    filteringCharset = "UTF-8"
 }
 
 task relocateShadowJar(type: ConfigureShadowRelocation) {

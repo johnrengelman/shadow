@@ -22,9 +22,9 @@ package com.github.jengelman.gradle.plugins.shadow.transformers
 import com.github.jengelman.gradle.plugins.shadow.ShadowStats
 import junit.framework.TestCase
 
-import org.custommonkey.xmlunit.Diff
-import org.custommonkey.xmlunit.XMLAssert
-import org.custommonkey.xmlunit.XMLUnit
+import org.xmlunit.diff.Diff
+import org.xmlunit.builder.DiffBuilder
+import junit.framework.Assert
 import com.github.jengelman.gradle.plugins.shadow.relocation.Relocator
 import org.codehaus.plexus.util.IOUtil
 
@@ -47,7 +47,8 @@ class ComponentsXmlResourceTransformerTest extends TestCase {
 
     void testConfigurationMerging() {
 
-        XMLUnit.setNormalizeWhitespace(true)
+        formatXml = true
+        diffBuilder.normalizeWhitespace()
 
         transformer.transform(
                 TransformerContext.builder()
@@ -63,11 +64,7 @@ class ComponentsXmlResourceTransformerTest extends TestCase {
                         .relocators(Collections.<Relocator> emptyList())
                         .stats(stats)
                         .build())
-        Diff diff = XMLUnit.compareXML(
-                IOUtil.toString(getClass().getResourceAsStream("/components-expected.xml"), "UTF-8"),
-                IOUtil.toString(transformer.getTransformedResource(), "UTF-8"))
-        //assertEquals( IOUtil.toString( getClass().getResourceAsStream( "/components-expected.xml" ), "UTF-8" ),
-        //              IOUtil.toString( transformer.getTransformedResource(), "UTF-8" ).replaceAll("\r\n", "\n") )
-        XMLAssert.assertXMLIdentical(diff, true)
+        assertEquals( IOUtil.toString( getClass().getResourceAsStream( "/components-expected.xml" ), "UTF-8" ),
+                IOUtil.toString( transformer.getTransformedResource(), "UTF-8" ) )
     }
 }

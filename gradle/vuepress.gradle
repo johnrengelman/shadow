@@ -1,7 +1,7 @@
 apply plugin: "com.github.node-gradle.node"
 
 node {
-    yarnVersion = '1.5.1'
+    yarnVersion = '1.22.5'
 }
 
 tasks.yarn_build.inputs.files project.fileTree('src/docs')
