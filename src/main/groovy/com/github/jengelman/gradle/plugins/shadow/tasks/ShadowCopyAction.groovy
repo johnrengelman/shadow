@@ -348,6 +348,7 @@ class ShadowCopyAction implements CopyAction {
             // that use the constant pool to determine the dependencies of a class.
             ClassWriter cw = new ClassWriter(0)
 
+            remapper.currentFilePath = path
             ClassVisitor cv = new ClassRemapper(cw, remapper)
 
             try {

@@ -42,6 +42,21 @@ class SimpleRelocatorTest extends TestCase {
       stats = new ShadowStats()
     }
 
+    void testIsExcludedSource() {
+        SimpleRelocator relocator
+
+        println("hello")
+        relocator = new SimpleRelocator("org.foo", null, null, null)
+        relocator.excludeSource "org/apache/iceberg/spark/parquet"
+        relocator.excludeSource "org/apache/spark/sql/execution/datasources/parquet"
+        println(relocator)
+
+        assertEquals(false, relocator.canRelocateSourceFile("org/apache/iceberg/spark/parquet/SparkNativeParquet.class"))
+        assertEquals(false, relocator.canRelocateSourceFile("org/apache/iceberg/spark/parquet/SparkNativeParquet\$.class"))
+        assertEquals(false, relocator.canRelocateSourceFile("org/apache/spark/sql/execution/datasources/parquet/v1.class"))
+        assertEquals(true, relocator.canRelocateSourceFile("org/foo/Class.class"))
+    }
+
     void testCanRelocatePath() {
         SimpleRelocator relocator
 

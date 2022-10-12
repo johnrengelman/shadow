@@ -24,6 +24,7 @@ import com.github.jengelman.gradle.plugins.shadow.relocation.RelocateClassContex
 import com.github.jengelman.gradle.plugins.shadow.relocation.RelocatePathContext
 import com.github.jengelman.gradle.plugins.shadow.relocation.Relocator
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowCopyAction.RelativeArchivePath
+import groovy.util.logging.Slf4j
 import org.objectweb.asm.commons.Remapper
 
 import java.util.regex.Matcher
@@ -34,12 +35,14 @@ import java.util.regex.Pattern
  *
  * @author John Engelman
  */
+@Slf4j
 class RelocatorRemapper extends Remapper {
 
     private final Pattern classPattern = Pattern.compile("(\\[*)?L(.+)")
 
     List<Relocator> relocators
     ShadowStats stats
+    public String currentFilePath
 
     RelocatorRemapper(List<Relocator> relocators, ShadowStats stats) {
         this.relocators = relocators
@@ -65,7 +68,13 @@ class RelocatorRemapper extends Remapper {
                 name = m.group(2)
             }
 
-            for (Relocator r : relocators) {
+            for (Relocator r : relocators)  {
+                boolean canRelocate = r.canRelocateSourceFile(currentFilePath)
+                if (!canRelocate) {
+                    String info = String.format("skipped %s as src path %s excluded", r, currentFilePath)
+                    log.debug(info)
+                    continue
+                }
                 if (r.canRelocateClass(name)) {
                     RelocateClassContext classContext = RelocateClassContext.builder().className(name).stats(stats).build()
                     value = prefix + r.relocateClass(classContext) + suffix
@@ -97,6 +106,13 @@ class RelocatorRemapper extends Remapper {
         }
 
         for (Relocator r : relocators) {
+            boolean canRelocate = r.canRelocateSourceFile(currentFilePath)
+            if (!canRelocate) {
+                String info = String.format("skipped %s as src path %s excluded", r, currentFilePath)
+                log.debug(info)
+                continue
+            }
+
             if (r.canRelocatePath(name)) {
                 RelocatePathContext pathContext = RelocatePathContext.builder().path(name).stats(stats).build()
                 value = prefix + r.relocatePath(pathContext) + suffix

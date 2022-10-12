@@ -37,4 +37,6 @@ interface Relocator {
     String relocateClass(RelocateClassContext context)
 
     String applyToSourceContent(String sourceContent)
+
+    boolean canRelocateSourceFile(String sourceFilePath)
 }
