@@ -12,10 +12,12 @@ class ShadowExtension {
 
     CopySpec applicationDistribution
     Project project
+    boolean addJavaVariants
 
     ShadowExtension(Project project) {
         this.project = project
         applicationDistribution = project.copySpec {}
+        addJavaVariants = true
     }
 
     void component(MavenPublication publication) {

@@ -47,9 +47,13 @@ class ShadowJavaPlugin implements Plugin<Project> {
 
         project.configurations.shadowRuntimeElements.extendsFrom project.configurations.shadow
 
-        project.components.java {
-            addVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
-                mapToOptional() // make it a Maven optional dependency
+        project.afterEvaluate {
+            if (project.extensions.findByName(ShadowBasePlugin.EXTENSION_NAME).addJavaVariants) {
+                project.components.java {
+                    addVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+                        mapToOptional() // make it a Maven optional dependency
+                    }
+                }
             }
         }
     }
