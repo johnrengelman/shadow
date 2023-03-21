@@ -123,6 +123,35 @@ class ManifestAppenderTransformerTest extends TransformerTestSupport {
         assertEquals(sourceLines, targetLines)
     }
 
+    @Test
+    void testTransformationTrimmingTrailingWhitespace() {
+        def sourceLines = getResourceStream(MANIFEST_NAME).readLines()
+        def trimmedContent = sourceLines
+        while (trimmedContent.last().trim().isEmpty()) {
+            trimmedContent.removeLast()
+        }
+
+        transformer.with {
+            trimTrailingWhitespace()
+            append('Name', 'org/foo/bar/')
+            transform(new TransformerContext(MANIFEST_NAME, getResourceStream(MANIFEST_NAME), Collections.<Relocator>emptyList(), new ShadowStats()))
+        }
+
+        def testableZipFile = File.createTempFile("testable-zip-file-", ".jar")
+        def fileOutputStream = new FileOutputStream(testableZipFile)
+        def bufferedOutputStream = new BufferedOutputStream(fileOutputStream)
+        def zipOutputStream = new ZipOutputStream(bufferedOutputStream)
+
+        try {
+            transformer.modifyOutputStream(zipOutputStream, true)
+        } finally {
+            zipOutputStream.close()
+        }
+
+        def targetLines = readFrom(testableZipFile, MANIFEST_NAME)
+        assertEquals(trimmedContent + "Name: org/foo/bar/" + "", targetLines)
+    }
+
     static List<String> readFrom(File jarFile, String resourceName) {
         def zip = new ZipFile(jarFile)
         try {
