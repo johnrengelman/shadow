@@ -13,6 +13,8 @@ dependencies {
     implementation('org.vafer:jdependency:2.8.0') {
         exclude group: 'org.ow2.asm'
     }
+    // For Scala annotation remapping
+    implementation 'com.eed3si9n.jarjarabrams:jarjar-abrams-core_2.13:1.8.1'
 
     testImplementation('org.spockframework:spock-core:2.3-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'

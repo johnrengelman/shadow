@@ -1,5 +1,6 @@
 package com.github.jengelman.gradle.plugins.shadow.tasks
 
+import com.eed3si9n.jarjarabrams.scalasig.ScalaSigClassVisitor
 import com.github.jengelman.gradle.plugins.shadow.ShadowStats
 import com.github.jengelman.gradle.plugins.shadow.impl.RelocatorRemapper
 import com.github.jengelman.gradle.plugins.shadow.internal.UnusedTracker
@@ -345,7 +346,7 @@ class ShadowCopyAction implements CopyAction {
             // that use the constant pool to determine the dependencies of a class.
             ClassWriter cw = new ClassWriter(0)
 
-            ClassVisitor cv = new ClassRemapper(cw, remapper)
+            ClassVisitor cv = new ScalaSigClassVisitor(new ClassRemapper(cw, remapper), remapper.scalaRenamer)
 
             try {
                 cr.accept(cv, ClassReader.EXPAND_FRAMES)

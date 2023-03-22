@@ -25,6 +25,9 @@ import com.github.jengelman.gradle.plugins.shadow.relocation.RelocatePathContext
 import com.github.jengelman.gradle.plugins.shadow.relocation.Relocator
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowCopyAction.RelativeArchivePath
 import org.objectweb.asm.commons.Remapper
+import scala.Function1
+import scala.Option
+import scala.jdk.FunctionWrappers
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -40,10 +43,22 @@ class RelocatorRemapper extends Remapper {
 
     List<Relocator> relocators
     ShadowStats stats
+    Function1<String, Option<String>> scalaRenamer
 
     RelocatorRemapper(List<Relocator> relocators, ShadowStats stats) {
         this.relocators = relocators
         this.stats = stats
+        this.scalaRenamer =
+            new FunctionWrappers.FromJavaFunction(
+                (String name) -> {
+                    Optional<Relocator> maybeRelocator = relocators.stream().filter(x -> x.canRelocateClass(name)).findAny()
+                    String rewritten =
+                        maybeRelocator
+                            .map(relocator -> relocator.relocateClass(new RelocateClassContext(name, stats)))
+                            .orElse(null)
+                    Option.apply(rewritten)
+                }
+            )
     }
 
     boolean hasRelocators() {
