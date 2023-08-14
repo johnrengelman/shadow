@@ -10,7 +10,7 @@ dependencies {
     implementation 'org.apache.ant:ant:1.10.13'
     implementation 'org.codehaus.plexus:plexus-utils:3.5.1'
     implementation "org.apache.logging.log4j:log4j-core:2.20.0"
-    implementation('org.vafer:jdependency:2.8.0') {
+    implementation('org.vafer:jdependency:2.9.0') {
         exclude group: 'org.ow2.asm'
     }
 
