@@ -40,6 +40,7 @@ class RelocatorRemapper extends Remapper {
 
     List<Relocator> relocators
     ShadowStats stats
+    String currentFilePath
 
     RelocatorRemapper(List<Relocator> relocators, ShadowStats stats) {
         this.relocators = relocators
@@ -66,14 +67,16 @@ class RelocatorRemapper extends Remapper {
             }
 
             for (Relocator r : relocators) {
-                if (r.canRelocateClass(name)) {
-                    RelocateClassContext classContext = RelocateClassContext.builder().className(name).stats(stats).build()
-                    value = prefix + r.relocateClass(classContext) + suffix
-                    break
-                } else if (r.canRelocatePath(name)) {
-                    RelocatePathContext pathContext = RelocatePathContext.builder().path(name).stats(stats).build()
-                    value = prefix + r.relocatePath(pathContext) + suffix
-                    break
+                if (r.canRelocateSourceFile(currentFilePath)) {
+                    if (r.canRelocateClass(name)) {
+                        RelocateClassContext classContext = RelocateClassContext.builder().className(name).stats(stats).build()
+                        value = prefix + r.relocateClass(classContext) + suffix
+                        break
+                    } else if (r.canRelocatePath(name)) {
+                        RelocatePathContext pathContext = RelocatePathContext.builder().path(name).stats(stats).build()
+                        value = prefix + r.relocatePath(pathContext) + suffix
+                        break
+                    }
                 }
             }
 
@@ -113,6 +116,10 @@ class RelocatorRemapper extends Remapper {
 
     String mapPath(RelativeArchivePath path) {
         mapPath(path.pathString)
+    }
+
+    void currentFilePath(String path) {
+        currentFilePath = path
     }
 
 }

@@ -345,6 +345,8 @@ class ShadowCopyAction implements CopyAction {
             // that use the constant pool to determine the dependencies of a class.
             ClassWriter cw = new ClassWriter(0)
 
+            remapper.currentFilePath(path)
+
             ClassVisitor cv = new ClassRemapper(cw, remapper)
 
             try {
@@ -353,6 +355,7 @@ class ShadowCopyAction implements CopyAction {
                 throw new GradleException("Error in ASM processing class " + path, ise)
             } finally {
                 is.close()
+                remapper.currentFilePath(null)
             }
 
             byte[] renamedClass = cw.toByteArray()
