@@ -132,6 +132,27 @@ class ShadowPluginSpec extends PluginSpecification {
         assert output.exists()
     }
 
+    def 'warns when a file is masked by a previously shadowed resource'() {
+        given:
+        URL artifact = this.class.classLoader.getResource('test-artifact-1.0-SNAPSHOT.jar')
+        URL project = this.class.classLoader.getResource('test-project-1.0-SNAPSHOT.jar')
+
+        buildFile << """
+            shadowJar {
+            |    destinationDirectory = buildDir
+            |    archiveBaseName = 'shadow'
+            |    from('${artifact.path}')
+            |    from('${project.path}')
+            |}
+        """.stripMargin()
+
+        when:
+        BuildResult result = run('shadowJar')
+
+        then:
+        assert result.output =~ /\s*IGNORING Weird-File\.StrangeFormat from test-project-1\.0-SNAPSHOT\.jar, size is different \([0-9]{4} vs [0-9]{2}\)\s+--> origin JAR was Weird-File.StrangeFormat/
+    }
+
     def 'include project sources'() {
         given:
         file('src/main/java/shadow/Passed.java') << '''

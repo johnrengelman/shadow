@@ -17,3 +17,4 @@ src/docs/.vuepress/dist/
 jd-gui.cfg
 bin/
 .vscode/
+/package-lock.json
