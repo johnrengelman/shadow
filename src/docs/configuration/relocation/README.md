@@ -66,9 +66,8 @@ Shadow is shipped with a task that can be used to automatically configure all pa
 This feature was formally shipped into a 2nd plugin (`com.github.johnrengelman.plugin-shadow`) but has been
 removed for clarity reasons in version 4.0.0.
 
-To configure automatic dependency relocation, declare a task of type `ConfigureShadowRelocation` and configure the
-`target` parameter to be the `ShadowJar` task you wish to auto configure. You will also need to declare a task
-dependency so the tasks execute in the correct order.
+To configure automatic dependency relocation, set `enableRelocation true` and optionally specify a custom
+`relocationPrefix` to override the default value of `"shadow"`.
 
 ```groovy
 // Configure Auto Relocation
@@ -79,6 +78,8 @@ tasks.named('shadowJar', ShadowJar) {
     relocationPrefix "myapp"
 }
 ```
+
+In versions before 8.1.0 it was necessary to configure a separate `ConfigureShadowRelocation` task for this.
 
 > Configuring package auto relocation can add significant time to the shadow process as it will process all dependencies
 in the configurations declared to be shadowed. By default, this is the `runtime` or `runtimeClasspath` configurations.
