@@ -21,6 +21,6 @@ dependencies {
     testImplementation 'xmlunit:xmlunit:1.6'
     testImplementation 'org.apache.commons:commons-lang3:3.12.0'
     testImplementation 'com.google.guava:guava:31.1-jre'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.10.2'
 }
