@@ -9,7 +9,7 @@ plugins {
     id 'signing'
     id 'com.gradle.plugin-publish' version '1.1.0'
     id 'org.ajoberstar.git-publish' version '4.1.1'
-    id 'com.github.node-gradle.node' version '3.5.1'
+    id 'com.github.node-gradle.node' version '3.6.0'
 }
 
 apply plugin: ShadowPlugin
