@@ -127,7 +127,7 @@ dependencies {
 
 shadowJar {
   dependencies {
-    exclude(dependency('org.apache.logging.log4j::2.11.1'))
+    exclude(dependency('org.apache.logging.log4j:2.11.1'))
   }
 }
 ```
