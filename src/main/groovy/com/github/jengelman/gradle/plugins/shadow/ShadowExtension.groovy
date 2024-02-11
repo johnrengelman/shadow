@@ -5,16 +5,20 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPublication
 
 class ShadowExtension {
-    private final Provider<Provider<RegularFile>> archiveFile
+    private final Provider<Archive> archive
     private final Provider<List<Dep>> allDependencies
 
     ShadowExtension(Project project) {
-        archiveFile = project.provider { project.tasks.withType(ShadowJar).getByName("shadowJar").archiveFile }
+        archive = project.provider {
+            def archiveTask = project.tasks.withType(ShadowJar).getByName("shadowJar")
+            new Archive(archiveTask.archiveFile, archiveTask.archiveClassifier)
+        }
         allDependencies = project.provider {
             project.configurations.getByName("shadow").allDependencies.collect {
                 if ((it instanceof ProjectDependency) || !(it instanceof SelfResolvingDependency)) {
@@ -25,7 +29,10 @@ class ShadowExtension {
     }
 
     void component(MavenPublication publication) {
-        publication.artifact(archiveFile.get())
+        publication.artifact([
+                source    : archive.get().file,
+                classifier: archive.get().classifier.get()
+        ])
 
         // Don't inline this variable, it seems Groovy closure capturing is confused by the field instead of a local variable.
         final def allDeps = allDependencies
@@ -40,6 +47,16 @@ class ShadowExtension {
                     dependencyNode.appendNode('scope', 'runtime')
                 }
             }
+        }
+    }
+
+    private class Archive {
+        Provider<RegularFile> file
+        Property<String> classifier
+
+        Archive(Provider<RegularFile> file, Property<String> classifier) {
+            this.file = file
+            this.classifier = classifier
         }
     }
 
