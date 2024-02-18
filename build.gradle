@@ -8,7 +8,7 @@ plugins {
     id 'java-gradle-plugin'
     id 'signing'
     id 'com.gradle.plugin-publish' version '1.1.0'
-    id 'org.ajoberstar.git-publish' version '4.1.1'
+    id 'org.ajoberstar.git-publish' version '4.2.2'
     id 'com.github.node-gradle.node' version '3.5.1'
 }
 
