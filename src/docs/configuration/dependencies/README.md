@@ -146,9 +146,9 @@ dependencies {
 
 shadowJar {
   dependencies {
-    exclude(dependency {
+    exclude {
       it.moduleGroup == 'org.apache.logging.log4j'
-    })
+    }
   }
 }
 ```
