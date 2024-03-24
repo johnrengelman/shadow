@@ -13,7 +13,9 @@ apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-mainClassName = 'myapp.Main'
+application {
+    mainClass = 'myapp.Main'
+}
 ```
 
 ## Running the Shadow JAR

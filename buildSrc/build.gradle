@@ -41,7 +41,7 @@ class ScriptHolder {
 
 //Grab the dependencies closure and resolve it against
 //the buildSrc project dependencies
-//This effectively applies the same dependenices from build.gradle into buildSrc/build.gradle
+//This effectively applies the same dependencies from build.gradle into buildSrc/build.gradle
 //This is required so that when buildSrc is compiled it has the dependencies to compile the source code
 def closure = holder.dependencies.clone()
 closure.delegate = project.dependencies

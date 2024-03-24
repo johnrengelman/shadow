@@ -7,9 +7,9 @@ plugins {
     id 'idea'
     id 'java-gradle-plugin'
     id 'signing'
-    id 'com.gradle.plugin-publish' version '1.1.0'
-    id 'org.ajoberstar.git-publish' version '4.1.1'
-    id 'com.github.node-gradle.node' version '3.5.1'
+    id 'com.gradle.plugin-publish' version '1.2.1'
+    id 'org.ajoberstar.git-publish' version '4.2.2'
+    id 'com.github.node-gradle.node' version '7.0.2'
 }
 
 apply plugin: ShadowPlugin
@@ -20,11 +20,6 @@ apply from: file('gradle/vuepress.gradle')
 apply from: file('gradle/ghPages.gradle')
 apply from: file('gradle/dependencies.gradle')
 
-repositories {
-    gradlePluginPortal()
-    mavenCentral()
-}
-
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
 
@@ -34,25 +29,21 @@ tasks.withType(Test).configureEach {
         maxHeapSize "1g"
     }
 
-    systemProperty 'java.io.tmpdir', buildDir.absolutePath
+    systemProperty 'java.io.tmpdir', project.layout.buildDirectory.asFile.get().absolutePath
 
     // Required to test configuration cache in tests when using withDebug()
     // https://github.com/gradle/gradle/issues/22765#issuecomment-1339427241
     jvmArgs(
-            "--add-opens",
-            "java.base/java.util=ALL-UNNAMED",
-            "--add-opens",
-            "java.base/java.util.concurrent.atomic=ALL-UNNAMED",
-            "--add-opens",
-            "java.base/java.lang.invoke=ALL-UNNAMED",
-            "--add-opens",
-            "java.base/java.net=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+            "--add-opens", "java.base/java.net=ALL-UNNAMED",
     )
 }
 
 // Remove the gradleApi so it isn't merged into the jar file.
 // This is required because 'java-gradle-plugin' adds gradleApi() to the 'api' configuration.
-// See https://github.com/gradle/gradle/blob/master/subprojects/plugin-development/src/main/java/org/gradle/plugin/devel/plugins/JavaGradlePluginPlugin.java#L162
+// See https://github.com/gradle/gradle/blob/972c3e5c6ef990dd2190769c1ce31998a9402a79/subprojects/plugin-development/src/main/java/org/gradle/plugin/devel/plugins/JavaGradlePluginPlugin.java#L161
 configurations.named(JavaPlugin.API_CONFIGURATION_NAME) {
     dependencies.remove(project.dependencies.gradleApi())
 }

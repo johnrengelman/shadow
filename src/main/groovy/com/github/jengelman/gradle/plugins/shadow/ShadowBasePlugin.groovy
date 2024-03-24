@@ -13,15 +13,15 @@ class ShadowBasePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        if (GradleVersion.current() < GradleVersion.version("8.0")) {
-            throw new GradleException("This version of Shadow supports Gradle 8.0+ only. Please upgrade.")
+        if (GradleVersion.current() < GradleVersion.version("8.3")) {
+            throw new GradleException("This version of Shadow supports Gradle 8.3+ only. Please upgrade.")
         }
         project.extensions.create(EXTENSION_NAME, ShadowExtension, project)
         createShadowConfiguration(project)
 
         project.tasks.register(KnowsTask.NAME, KnowsTask) { knows ->
             knows.group = ShadowJavaPlugin.SHADOW_GROUP
-            knows.description = KnowsTask.DESC
+            knows.description = DESC
         }
     }
 

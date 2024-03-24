@@ -75,7 +75,7 @@ class ShadowStats {
     Map<String, String> getBuildScanData() {
         [
                 dependencies: jarCount,
-                relocations: relocationString
-        ]
+                relocations : relocationString,
+        ] as Map<String, String>
     }
 }

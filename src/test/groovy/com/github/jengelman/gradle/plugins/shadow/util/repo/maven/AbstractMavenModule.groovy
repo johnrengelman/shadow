@@ -3,6 +3,7 @@ package com.github.jengelman.gradle.plugins.shadow.util.repo.maven
 import com.github.jengelman.gradle.plugins.shadow.util.file.TestFile
 import com.github.jengelman.gradle.plugins.shadow.util.repo.AbstractModule
 import groovy.xml.MarkupBuilder
+import groovy.xml.XmlParser
 import java.text.SimpleDateFormat
 
 abstract class AbstractMavenModule extends AbstractModule implements MavenModule {

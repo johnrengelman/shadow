@@ -1,7 +1,7 @@
 defaults: &defaults
   working_directory: ~/shadow
   docker:
-    - image: cimg/openjdk:17.0
+    - image: azul/zulu-openjdk:21-latest
   environment:
     - TERM: "dumb"
     - GRADLE_OPTS: "-Xmx1024m"
@@ -29,7 +29,7 @@ jobs:
           paths:
             - ~/.gradle
 
-      - run: ./gradlew build --scan
+      - run: ./gradlew build
 
       - run:
           name: Save test results

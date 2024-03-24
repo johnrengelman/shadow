@@ -4,13 +4,14 @@ dependencies {
     shadow 'org.codehaus.groovy:groovy-backports-compat23:3.0.8'
 
     implementation 'org.jdom:jdom2:2.0.6.1'
-    implementation 'org.ow2.asm:asm:9.5'
-    implementation 'org.ow2.asm:asm-commons:9.5'
-    implementation 'commons-io:commons-io:2.11.0'
-    implementation 'org.apache.ant:ant:1.10.13'
-    implementation 'org.codehaus.plexus:plexus-utils:3.5.1'
-    implementation "org.apache.logging.log4j:log4j-core:2.20.0"
-    implementation('org.vafer:jdependency:2.8.0') {
+    implementation 'org.ow2.asm:asm:9.7'
+    implementation 'org.ow2.asm:asm-commons:9.7'
+    implementation 'commons-io:commons-io:2.15.1'
+    implementation 'org.apache.ant:ant:1.10.14'
+    implementation 'org.codehaus.plexus:plexus-utils:4.0.0'
+    implementation 'org.codehaus.plexus:plexus-xml:4.0.3'
+    implementation "org.apache.logging.log4j:log4j-core:2.23.1"
+    implementation('org.vafer:jdependency:2.10') {
         exclude group: 'org.ow2.asm'
     }
 
@@ -19,8 +20,9 @@ dependencies {
     }
     testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
     testImplementation 'xmlunit:xmlunit:1.6'
-    testImplementation 'org.apache.commons:commons-lang3:3.12.0'
-    testImplementation 'com.google.guava:guava:31.1-jre'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.9.2'
+    testImplementation 'org.apache.commons:commons-lang3:3.14.0'
+    testImplementation 'com.google.guava:guava:33.1.0-jre'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

@@ -14,7 +14,7 @@ public class HashValue {
     }
 
     public static HashValue parse(String inputString) {
-        if (inputString == null || inputString.length() == 0) {
+        if (inputString == null || inputString.isEmpty()) {
             return null;
         }
         return new HashValue(parseInput(inputString));

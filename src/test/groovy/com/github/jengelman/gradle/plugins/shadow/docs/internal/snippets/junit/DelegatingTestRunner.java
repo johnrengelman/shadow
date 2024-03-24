@@ -5,6 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerScheduler;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,8 +46,8 @@ public class DelegatingTestRunner extends Suite {
     Class<RunnerProvider> asType = (Class<RunnerProvider>) clazz;
     RunnerProvider instance;
     try {
-      instance = asType.newInstance();
-    } catch (InstantiationException | IllegalAccessException e) {
+      instance = asType.getConstructor().newInstance();
+    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
       throw new InitializationError(e);
     }
 

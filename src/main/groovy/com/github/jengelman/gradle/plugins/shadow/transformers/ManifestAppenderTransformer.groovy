@@ -60,7 +60,10 @@ class ManifestAppenderTransformer implements Transformer {
     void transform(TransformerContext context) {
         if (manifestContents.length == 0) {
             manifestContents = IOUtil.toByteArray(context.is)
-            IOUtil.close(context.is)
+            try {
+                context.is
+            } catch (IOException ignored) {
+            }
         }
     }
 
@@ -78,9 +81,9 @@ class ManifestAppenderTransformer implements Transformer {
 
         if (!attributes.isEmpty()) {
             for (attribute in attributes) {
-                os.write(attribute.first.getBytes(UTF_8))
+                os.write(attribute.v1.getBytes(UTF_8))
                 os.write(SEPARATOR)
-                os.write(attribute.second.toString().getBytes(UTF_8))
+                os.write(attribute.v2.toString().getBytes(UTF_8))
                 os.write(EOL)
             }
             os.write(EOL)

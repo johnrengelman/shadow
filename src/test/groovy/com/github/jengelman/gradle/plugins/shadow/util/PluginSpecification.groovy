@@ -1,7 +1,6 @@
 package com.github.jengelman.gradle.plugins.shadow.util
 
 import com.github.jengelman.gradle.plugins.shadow.util.file.TestFile
-import com.google.common.base.StandardSystemProperty
 import org.codehaus.plexus.util.IOUtil
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -9,10 +8,11 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
+import java.util.function.Function
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
-class PluginSpecification extends Specification {
+abstract class PluginSpecification extends Specification {
 
     @Rule TemporaryFolder dir
 
@@ -60,32 +60,31 @@ class PluginSpecification extends Specification {
                 .withPluginClasspath()
     }
 
+    GradleRunner runner(Collection<String> tasks) {
+        runner.withArguments(["-Dorg.gradle.warning.mode=all", "--configuration-cache", "--stacktrace"] + tasks.toList())
+    }
+
     BuildResult run(String... tasks) {
         run(tasks.toList())
     }
 
-    BuildResult runWithDeprecationWarnings(String... tasks) {
-        def result = runner(tasks.toList()).build()
-        return result
-    }
-
-    BuildResult run(List<String> tasks) {
-        def result = runner(tasks).build()
+    BuildResult run(List<String> tasks, Function<GradleRunner, GradleRunner> runnerFunction = { it }) {
+        def result = runnerFunction.apply(runner(tasks)).build()
         assertNoDeprecationWarnings(result)
         return result
     }
 
     BuildResult runWithDebug(String... tasks) {
-        def result = runner(tasks.toList()).withDebug(true).build()
+        return run(tasks.toList(), { it.withDebug(true) })
+    }
+
+    BuildResult runWithFailure(List<String> tasks, Function<GradleRunner, GradleRunner> runnerFunction = { it }) {
+        def result = runnerFunction.apply(runner(tasks)).buildAndFail()
         assertNoDeprecationWarnings(result)
         return result
     }
 
-    GradleRunner runner(Collection<String> tasks) {
-        runner.withArguments(["-Dorg.gradle.warning.mode=all", "--configuration-cache", "--stacktrace"] + tasks.toList())
-    }
-
-    void assertNoDeprecationWarnings(BuildResult result) {
+    static void assertNoDeprecationWarnings(BuildResult result) {
         result.output.eachLine {
             assert !containsDeprecationWarning(it)
         }
@@ -94,11 +93,6 @@ class PluginSpecification extends Specification {
     static boolean containsDeprecationWarning(String output) {
         output.contains("has been deprecated and is scheduled to be removed in Gradle") ||
                 output.contains("has been deprecated. This is scheduled to be removed in Gradle")
-    }
-
-    File getLocalRepo() {
-        def rootRelative = new File("build/localrepo")
-        rootRelative.directory ? rootRelative : new File(new File(StandardSystemProperty.USER_DIR.value()).parentFile, "build/localrepo")
     }
 
     File getBuildFile() {

@@ -287,11 +287,6 @@ public class TestFile extends File {
         return super.getParentFile() == null ? null : new TestFile(super.getParentFile());
     }
 
-    @Override
-    public String toString() {
-        return getPath();
-    }
-
     public TestFile writelns(Iterable<String> lines) {
         Formatter formatter = new Formatter();
         for (String line : lines) {
@@ -329,7 +324,7 @@ public class TestFile extends File {
         assertIsFile();
         other.assertIsFile();
         assertEquals(String.format("%s is not the same length as %s", this, other), other.length(), this.length());
-        assertTrue(String.format("%s does not have the same content as %s", this, other), Arrays.equals(getHash("MD5"), other.getHash("MD5")));
+        assertArrayEquals(String.format("%s does not have the same content as %s", this, other), getHash("MD5"), other.getHash("MD5"));
         return this;
     }
 
@@ -517,7 +512,7 @@ public class TestFile extends File {
 
     public void assertContentsHaveChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(String.format("contents of %s have not changed", this), !Arrays.equals(now.hash, snapshot.hash));
+        assertFalse(String.format("contents of %s have not changed", this), Arrays.equals(now.hash, snapshot.hash));
     }
 
     public void assertContentsHaveNotChangedSince(Snapshot snapshot) {
@@ -551,7 +546,7 @@ public class TestFile extends File {
         return new TestFileHelper(this).execute(args, env);
     }
 
-    public class Snapshot {
+    public static class Snapshot {
         private final long modTime;
         private final byte[] hash;
 

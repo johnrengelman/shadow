@@ -47,10 +47,6 @@ signing {
     sign(publishing.publications)
 }
 
-tasks.withType(Sign).configureEach {
-    notCompatibleWithConfigurationCache("https://github.com/gradle/gradle/issues/13470")
-}
-
 tasks.register('release') {
     dependsOn tasks.named('assemble'), tasks.named('publishPlugins'), tasks.named('gitPublishPush')
 }

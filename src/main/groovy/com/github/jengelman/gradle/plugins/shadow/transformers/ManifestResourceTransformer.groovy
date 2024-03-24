@@ -21,7 +21,6 @@ package com.github.jengelman.gradle.plugins.shadow.transformers
 
 import org.apache.tools.zip.ZipEntry
 import org.apache.tools.zip.ZipOutputStream
-import org.codehaus.plexus.util.IOUtil
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
@@ -72,7 +71,10 @@ class ManifestResourceTransformer implements Transformer {
         if (!manifestDiscovered) {
             manifest = new Manifest(context.is)
             manifestDiscovered = true
-            IOUtil.close(context.is)
+            try {
+                context.is
+            } catch (IOException ignored) {
+            }
         }
     }
 

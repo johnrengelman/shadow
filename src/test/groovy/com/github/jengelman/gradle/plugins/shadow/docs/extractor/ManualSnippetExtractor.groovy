@@ -3,6 +3,7 @@ package com.github.jengelman.gradle.plugins.shadow.docs.extractor
 import com.github.jengelman.gradle.plugins.shadow.docs.internal.snippets.TestCodeSnippet
 import com.github.jengelman.gradle.plugins.shadow.docs.internal.snippets.executer.ExceptionTransformer
 import com.github.jengelman.gradle.plugins.shadow.docs.internal.snippets.executer.SnippetExecuter
+import groovy.ant.FileNameFinder
 
 import java.util.regex.Pattern
 

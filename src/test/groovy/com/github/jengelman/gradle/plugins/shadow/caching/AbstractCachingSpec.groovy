@@ -3,14 +3,12 @@ package com.github.jengelman.gradle.plugins.shadow.caching
 import com.github.jengelman.gradle.plugins.shadow.util.PluginSpecification
 import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-
 
 abstract class AbstractCachingSpec extends PluginSpecification {
     @Rule TemporaryFolder alternateDir
@@ -41,14 +39,8 @@ abstract class AbstractCachingSpec extends PluginSpecification {
     BuildResult runInAlternateDirWithCacheEnabled(String... arguments) {
         List<String> cacheArguments = [ '--build-cache' ]
         cacheArguments.addAll(arguments)
-        return alternateDirRunner.withArguments(cacheArguments).build()
-    }
-
-    GradleRunner getAlternateDirRunner() {
-        GradleRunner.create()
-                .withProjectDir(alternateDir.root)
-                .forwardOutput()
-                .withPluginClasspath()
+        // TODO: Use PluginSpecification.run here to reuse flags, but cache tests failed for now, need to investigate.
+        return runner.withProjectDir(alternateDir.root).withArguments(cacheArguments).build()
     }
 
     private String escapedPath(File file) {
